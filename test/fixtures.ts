@@ -1,5 +1,5 @@
 /**
- * Shared EVM fixtures for compiler tests.
+ * Shared EVM fixtures for compiler and review tests.
  */
 
 import type { PreparedTransaction } from '../src/types.js';
@@ -37,5 +37,24 @@ export const EVM_NATIVE_LEGACY: PreparedTransaction = {
     mode: 'LEGACY',
     gasLimit: '21000',
     gasPrice: '5000000000',
+  },
+};
+
+export const EVM_TOKEN_EIP1559: PreparedTransaction = {
+  chain: 'ethereum',
+  chainId: 1,
+  from: '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
+  to: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+  valueWei: '0',
+  data: '0xa9059cbb000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000f4240',
+  txType: 'TRANSFER_TOKEN',
+  tokenContract: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+  nonce: '1649',
+  fee: {
+    mode: 'EIP1559',
+    gasLimit: '46251',
+    baseFeePerGas: '107264908',
+    maxPriorityFeePerGas: '1000000000',
+    maxFeePerGas: '1214529816',
   },
 };
