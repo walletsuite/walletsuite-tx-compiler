@@ -2,19 +2,20 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in this project, please report it responsibly.
+If you believe you have found a security issue in this package please report it privately.
 
-**Do not open a public GitHub issue for security vulnerabilities.**
+Do not open a public GitHub issue for security reports.
 
-Instead, please email: **security@walletsuite.io**
+Send the report to `security@walletsuite.io`.
 
-Include:
-- A description of the vulnerability
-- Steps to reproduce
-- Potential impact
-- Suggested fix (if any)
+Please include:
 
-We will acknowledge receipt within 48 hours and aim to provide a fix or mitigation within 7 days for critical issues.
+- a short description of the issue
+- reproduction steps or a proof of concept
+- the expected impact
+- any suggested remediation if you already have one
+
+We aim to acknowledge reports within 48 hours and prioritize critical issues for immediate investigation.
 
 ## Supported Versions
 
@@ -24,4 +25,11 @@ We will acknowledge receipt within 48 hours and aim to provide a fix or mitigati
 
 ## Scope
 
-This library handles transaction compilation only. It does not handle private keys, signing, broadcasting, or network communication. Security concerns related to transaction integrity, validation bypass, or review/compile mismatches are in scope.
+This library handles transaction validation review and compilation only. It does not manage private keys signing broadcasting or RPC communication.
+
+In scope:
+
+- validation bypasses
+- incorrect transaction compilation
+- review output that does not match compiled transaction intent
+- chain specific parsing bugs that could misrepresent the transaction being signed

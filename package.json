@@ -1,11 +1,12 @@
 {
   "name": "@walletsuite/tx-compiler",
   "version": "0.1.0",
-  "description": "TypeScript library for deterministic Blockchains transaction compilation from WalletSuite prepared payloads",
+  "description": "TypeScript library for deterministic Ethereum and Tron transaction compilation from WalletSuite prepared payloads",
   "license": "Apache-2.0",
   "packageManager": "npm@10.9.2",
   "homepage": "https://github.com/walletsuite/walletsuite-tx-compiler#readme",
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": {
       "import": {
@@ -72,6 +73,8 @@
     "ethereum",
     "tron",
     "evm",
+    "erc20",
+    "trc20",
     "walletsuite"
   ]
 }
