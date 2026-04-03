@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { review } from '../src/review.js';
 import { TxCompilerError } from '../src/errors.js';
-import { EVM_NATIVE_EIP1559, EVM_NATIVE_LEGACY, EVM_TOKEN_EIP1559 } from './fixtures.js';
+import {
+  EVM_NATIVE_EIP1559,
+  EVM_NATIVE_LEGACY,
+  EVM_TOKEN_EIP1559,
+  TRON_NATIVE,
+  TRON_TOKEN,
+} from './fixtures.js';
 
 describe('review', () => {
   it('reviews EVM native transfers', () => {
@@ -136,6 +142,47 @@ describe('review', () => {
     expect(catchError(() => review(input)).code).toBe('INVALID_PAYLOAD');
   });
 
+  it('reviews Tron native transfers', () => {
+    const result = review(TRON_NATIVE);
+    expect(result.chain).toBe('tron');
+    expect(result.txType).toBe('TRANSFER_NATIVE');
+    expect(result.recipient).toBe(TRON_NATIVE.to);
+    expect(result.amount).toBe(TRON_NATIVE.valueWei);
+    expect(result.tokenContract).toBeNull();
+    expect(result.nonce).toBeNull();
+    expect(result.chainId).toBeNull();
+  });
+
+  it('reviews Tron token transfers', () => {
+    const result = review(TRON_TOKEN);
+    expect(result.chain).toBe('tron');
+    expect(result.txType).toBe('TRANSFER_TOKEN');
+    expect(result.recipient).toBe(TRON_TOKEN.to);
+    expect(result.amount).toBe(TRON_TOKEN.valueWei);
+    expect(result.tokenContract).toBe(TRON_TOKEN.tokenContract);
+  });
+
+  it('rejects invalid Tron review payloads', () => {
+    expect(catchError(() => review({ ...TRON_NATIVE, from: '0xinvalid' })).code).toBe(
+      'INVALID_ADDRESS',
+    );
+    expect(catchError(() => review({ ...TRON_NATIVE, data: '0xdeadbeef' })).code).toBe(
+      'INVALID_PAYLOAD',
+    );
+    expect(
+      catchError(() => review({ ...TRON_NATIVE, tokenContract: TRON_TOKEN.tokenContract })).code,
+    ).toBe('INVALID_PAYLOAD');
+    expect(catchError(() => review({ ...TRON_TOKEN, tokenContract: null })).code).toBe(
+      'INVALID_PAYLOAD',
+    );
+    expect(catchError(() => review({ ...TRON_NATIVE, chainId: 1 })).code).toBe(
+      'INVALID_PAYLOAD',
+    );
+    expect(catchError(() => review({ ...TRON_NATIVE, nonce: '1' })).code).toBe(
+      'INVALID_PAYLOAD',
+    );
+  });
+
   it('builds EIP-1559 fee review values', () => {
     const result = review(EVM_NATIVE_EIP1559);
     expect(result.fee.mode).toBe('EIP1559');
@@ -167,6 +214,44 @@ describe('review', () => {
     const result = review(input);
     expect(result.fee.estimatedMaxCost).toBe((21000n * 7000000000n).toString());
     expect(result.fee.gasPrice).toBe('7000000000');
+  });
+
+  it('builds Tron fee review values', () => {
+    const result = review(TRON_TOKEN);
+    expect(result.fee.mode).toBe('TRON');
+    expect(result.fee.estimatedMaxCost).toBe('30000000');
+    expect(result.fee.tronFeeLimit).toBe('30000000');
+  });
+
+  it('returns null estimated fee when Tron fee limit is absent', () => {
+    const result = review(TRON_NATIVE);
+    expect(result.fee.estimatedMaxCost).toBeNull();
+    expect(result.fee.tronFeeLimit).toBeUndefined();
+  });
+
+  it('rejects missing Tron block headers and wrong fee modes', () => {
+    expect(catchError(() => review({ ...TRON_NATIVE, fee: { ...TRON_NATIVE.fee, rp: null } })).code).toBe(
+      'INVALID_BLOCK_HEADER',
+    );
+    expect(catchError(() => review({ ...TRON_NATIVE, fee: { mode: 'LEGACY' as const } })).code).toBe(
+      'UNSUPPORTED_FEE_MODE',
+    );
+  });
+
+  it('rejects invalid Tron block version values', () => {
+    const header = TRON_NATIVE.fee.rp;
+    if (header == null) {
+      throw new Error('Expected Tron fixture to include a block header');
+    }
+
+    expect(
+      catchError(() =>
+        review({
+          ...TRON_NATIVE,
+          fee: { ...TRON_NATIVE.fee, rp: { ...header, v: -1 } },
+        }),
+      ).code,
+    ).toBe('INVALID_BLOCK_HEADER');
   });
 
   it('rejects missing EIP-1559 fee fields', () => {

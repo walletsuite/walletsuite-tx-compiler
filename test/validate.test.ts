@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { validate } from '../src/validate.js';
 import { TxCompilerError } from '../src/errors.js';
-import { EVM_NATIVE_EIP1559, EVM_NATIVE_LEGACY } from './fixtures.js';
+import {
+  EVM_NATIVE_EIP1559,
+  EVM_NATIVE_LEGACY,
+  EVM_TOKEN_EIP1559,
+  TRON_BLOCK_HEADER,
+  TRON_NATIVE,
+  TRON_TOKEN,
+} from './fixtures.js';
 
 function omit(obj: object, ...keys: string[]): Record<string, unknown> {
   return Object.fromEntries(Object.entries(obj).filter(([key]) => !keys.includes(key)));
@@ -31,6 +38,27 @@ describe('validate', () => {
     expect(result.chain).toBe('ethereum');
     expect(result.txType).toBe('TRANSFER_NATIVE');
     expect(result.fee.mode).toBe('LEGACY');
+  });
+
+  it('accepts a valid EVM token payload', () => {
+    const result = validate(EVM_TOKEN_EIP1559);
+    expect(result.chain).toBe('ethereum');
+    expect(result.txType).toBe('TRANSFER_TOKEN');
+    expect(result.tokenContract).toBe(EVM_TOKEN_EIP1559.tokenContract);
+  });
+
+  it('accepts a valid Tron native payload', () => {
+    const result = validate(TRON_NATIVE);
+    expect(result.chain).toBe('tron');
+    expect(result.txType).toBe('TRANSFER_NATIVE');
+    expect(result.fee.mode).toBe('TRON');
+  });
+
+  it('accepts a valid Tron token payload', () => {
+    const result = validate(TRON_TOKEN);
+    expect(result.chain).toBe('tron');
+    expect(result.txType).toBe('TRANSFER_TOKEN');
+    expect(result.tokenContract).toBe(TRON_TOKEN.tokenContract);
   });
 
   it('coerces numeric valueWei to string', () => {
@@ -66,12 +94,14 @@ describe('validate', () => {
   });
 
   it('rejects unsupported chains', () => {
-    const error = expectError(() => validate({ ...EVM_NATIVE_EIP1559, chain: 'tron' }));
+    const error = expectError(() => validate({ ...EVM_NATIVE_EIP1559, chain: 'solana' }));
     expect(error.code).toBe('UNSUPPORTED_CHAIN');
   });
 
   it('rejects unsupported transaction types', () => {
-    const error = expectError(() => validate({ ...EVM_NATIVE_EIP1559, txType: 'TRANSFER_TOKEN' }));
+    const error = expectError(() =>
+      validate({ ...EVM_NATIVE_EIP1559, txType: 'SWAP' as 'TRANSFER_NATIVE' | 'TRANSFER_TOKEN' }),
+    );
     expect(error.code).toBe('UNSUPPORTED_TX_TYPE');
   });
 
@@ -140,6 +170,18 @@ describe('validate', () => {
     ).toBe('INVALID_ADDRESS');
   });
 
+  it('rejects invalid Tron addresses', () => {
+    expect(expectError(() => validate({ ...TRON_NATIVE, from: '0xinvalid' })).code).toBe(
+      'INVALID_ADDRESS',
+    );
+    expect(expectError(() => validate({ ...TRON_NATIVE, to: 'not-a-tron-address' })).code).toBe(
+      'INVALID_ADDRESS',
+    );
+    expect(
+      expectError(() => validate({ ...TRON_TOKEN, tokenContract: '41abc' })).code,
+    ).toBe('INVALID_ADDRESS');
+  });
+
   it('rejects calldata on native transfers', () => {
     const error = expectError(() =>
       validate({ ...EVM_NATIVE_EIP1559, data: '0xdeadbeef' }),
@@ -171,6 +213,71 @@ describe('validate', () => {
     expect(error.code).toBe('INVALID_PAYLOAD');
   });
 
+  it('rejects invalid EVM token payload shape', () => {
+    expect(expectError(() => validate({ ...EVM_TOKEN_EIP1559, data: null })).code).toBe(
+      'INVALID_PAYLOAD',
+    );
+    expect(expectError(() => validate({ ...EVM_TOKEN_EIP1559, data: '0x' })).code).toBe(
+      'INVALID_PAYLOAD',
+    );
+    expect(
+      expectError(() =>
+        validate({
+          ...EVM_TOKEN_EIP1559,
+          data:
+            '0xdeadbeef0000000000000000000000000000000000000000000000000000000000000001' +
+            '00000000000000000000000000000000000000000000000000000000000f4240',
+        }),
+      ).code,
+    ).toBe('INVALID_CALLDATA');
+    expect(expectError(() => validate({ ...EVM_TOKEN_EIP1559, valueWei: '1' })).code).toBe(
+      'INVALID_PAYLOAD',
+    );
+    expect(
+      expectError(() =>
+        validate({
+          ...EVM_TOKEN_EIP1559,
+          tokenContract: '0x0000000000000000000000000000000000000002',
+        }),
+      ).code,
+    ).toBe('INVALID_PAYLOAD');
+    expect(
+      expectError(() =>
+        validate({
+          ...EVM_TOKEN_EIP1559,
+          data:
+            '0xa9059cbb' +
+            '0000000000000000000000010000000000000000000000000000000000000001' +
+            '00000000000000000000000000000000000000000000000000000000000f4240',
+        }),
+      ).code,
+    ).toBe('INVALID_CALLDATA');
+  });
+
+  it('rejects Tron payloads that include EVM only fields', () => {
+    expect(expectError(() => validate({ ...TRON_NATIVE, chainId: 1 })).code).toBe(
+      'INVALID_PAYLOAD',
+    );
+    expect(expectError(() => validate({ ...TRON_NATIVE, nonce: '1' })).code).toBe(
+      'INVALID_PAYLOAD',
+    );
+  });
+
+  it('rejects Tron payloads with calldata', () => {
+    expect(expectError(() => validate({ ...TRON_NATIVE, data: '0xdeadbeef' })).code).toBe(
+      'INVALID_PAYLOAD',
+    );
+    expect(expectError(() => validate({ ...TRON_TOKEN, data: '0xdeadbeef' })).code).toBe(
+      'INVALID_PAYLOAD',
+    );
+  });
+
+  it('rejects missing tokenContract on Tron token payloads', () => {
+    expect(expectError(() => validate({ ...TRON_TOKEN, tokenContract: null })).code).toBe(
+      'INVALID_PAYLOAD',
+    );
+  });
+
   it('rejects empty tokenContract on native transfers', () => {
     const error = expectError(() => validate({ ...EVM_NATIVE_EIP1559, tokenContract: '' }));
     expect(error.code).toBe('INVALID_PAYLOAD');
@@ -183,6 +290,11 @@ describe('validate', () => {
 
   it('rejects unsupported fee modes', () => {
     const error = expectError(() => validate({ ...EVM_NATIVE_EIP1559, fee: { mode: 'TRON' } }));
+    expect(error.code).toBe('UNSUPPORTED_FEE_MODE');
+  });
+
+  it('rejects non Tron fee modes on Tron payloads', () => {
+    const error = expectError(() => validate({ ...TRON_NATIVE, fee: { mode: 'LEGACY' } }));
     expect(error.code).toBe('UNSUPPORTED_FEE_MODE');
   });
 
@@ -258,5 +370,62 @@ describe('validate', () => {
 
     expect(result.fee.mode).toBe('LEGACY');
     expect(result.fee.maxFeePerGas).toBe('7000000000');
+  });
+
+  it('requires a Tron block header', () => {
+    const error = expectError(() =>
+      validate({ ...TRON_NATIVE, fee: { ...TRON_NATIVE.fee, rp: null } }),
+    );
+    expect(error.code).toBe('INVALID_BLOCK_HEADER');
+  });
+
+  it('rejects malformed Tron block headers', () => {
+    expect(
+      expectError(() =>
+        validate({
+          ...TRON_NATIVE,
+          fee: {
+            ...TRON_NATIVE.fee,
+            rp: { ...TRON_BLOCK_HEADER, h: 'short' },
+          },
+        }),
+      ).code,
+    ).toBe('INVALID_BLOCK_HEADER');
+
+    expect(
+      expectError(() =>
+        validate({
+          ...TRON_NATIVE,
+          fee: {
+            ...TRON_NATIVE.fee,
+            rp: { ...TRON_BLOCK_HEADER, h: 'z'.repeat(32) },
+          },
+        }),
+      ).code,
+    ).toBe('INVALID_BLOCK_HEADER');
+
+    expect(
+      expectError(() =>
+        validate({
+          ...TRON_NATIVE,
+          fee: {
+            ...TRON_NATIVE.fee,
+            rp: { ...TRON_BLOCK_HEADER, h: 'a'.repeat(33) },
+          },
+        }),
+      ).code,
+    ).toBe('INVALID_BLOCK_HEADER');
+
+    const invalidHex = expectError(() =>
+      validate({
+        ...TRON_NATIVE,
+        fee: {
+          ...TRON_NATIVE.fee,
+          rp: { ...TRON_BLOCK_HEADER, h: 'xyz!' },
+        },
+      }),
+    );
+    expect(invalidHex.code).toBe('INVALID_BLOCK_HEADER');
+    expect(invalidHex.message).toContain('only hex characters');
   });
 });
