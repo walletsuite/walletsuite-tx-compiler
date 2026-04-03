@@ -45,9 +45,9 @@ export interface FeeParams {
   readonly baseFeePerGas?: string | null;
   /** Priority fee (tip) per gas in wei (EIP-1559 only) */
   readonly maxPriorityFeePerGas?: string | null;
-  /** Maximum fee per gas in wei (EIP-1559 only) */
+  /** Maximum fee per gas in wei (EIP-1559 and legacy fallback) */
   readonly maxFeePerGas?: string | null;
-  /** Gas price in wei (LEGACY only) */
+  /** Gas price in wei (legacy primary price field) */
   readonly gasPrice?: string | null;
   /** Tron energy fee limit in SUN */
   readonly el?: string | null;
