@@ -238,6 +238,22 @@ describe('review', () => {
     );
   });
 
+  it('rejects invalid Tron block version values', () => {
+    const header = TRON_NATIVE.fee.rp;
+    if (header == null) {
+      throw new Error('Expected Tron fixture to include a block header');
+    }
+
+    expect(
+      catchError(() =>
+        review({
+          ...TRON_NATIVE,
+          fee: { ...TRON_NATIVE.fee, rp: { ...header, v: -1 } },
+        }),
+      ).code,
+    ).toBe('INVALID_BLOCK_HEADER');
+  });
+
   it('rejects missing EIP-1559 fee fields', () => {
     const input = {
       ...EVM_NATIVE_EIP1559,

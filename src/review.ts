@@ -419,5 +419,15 @@ function requireTronBlockHeader(header: TronBlockHeader | null | undefined): Tro
     });
   }
 
+  if (!Number.isSafeInteger(header.v) || header.v < 0) {
+    throw new TxCompilerError(
+      'INVALID_BLOCK_HEADER',
+      'Block version (v) must be a non-negative integer',
+      {
+        v: header.v,
+      },
+    );
+  }
+
   return header;
 }

@@ -415,5 +415,17 @@ describe('validate', () => {
         }),
       ).code,
     ).toBe('INVALID_BLOCK_HEADER');
+
+    const invalidHex = expectError(() =>
+      validate({
+        ...TRON_NATIVE,
+        fee: {
+          ...TRON_NATIVE.fee,
+          rp: { ...TRON_BLOCK_HEADER, h: 'xyz!' },
+        },
+      }),
+    );
+    expect(invalidHex.code).toBe('INVALID_BLOCK_HEADER');
+    expect(invalidHex.message).toContain('only hex characters');
   });
 });

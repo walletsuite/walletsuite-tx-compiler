@@ -307,13 +307,6 @@ function optionalBlockHeader(raw: unknown): TronBlockHeader | null {
   const t = requirePositiveInt(obj, 't');
   const v = requireNonNegativeInt(obj, 'v');
 
-  if (h.length < 32) {
-    throw new TxCompilerError(
-      'INVALID_BLOCK_HEADER',
-      'Block ID (h) must be at least 32 hex characters',
-    );
-  }
-
   if (!HEX_RE.test(h)) {
     throw new TxCompilerError(
       'INVALID_BLOCK_HEADER',
@@ -323,6 +316,13 @@ function optionalBlockHeader(raw: unknown): TronBlockHeader | null {
 
   if (h.length % 2 !== 0) {
     throw new TxCompilerError('INVALID_BLOCK_HEADER', 'Block ID (h) must have even-length hex');
+  }
+
+  if (h.length < 32) {
+    throw new TxCompilerError(
+      'INVALID_BLOCK_HEADER',
+      'Block ID (h) must be at least 32 hex characters',
+    );
   }
 
   const p = optionalBlockHeaderString(obj, 'p') ?? undefined;
