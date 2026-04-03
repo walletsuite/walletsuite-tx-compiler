@@ -1,9 +1,3 @@
-/**
- * Public bootstrap surface for the WalletSuite TX Compiler package.
- *
- * Feature modules land incrementally in subsequent commits.
- */
-
 export { TxCompilerError } from './errors.js';
 export type { TxCompilerErrorCode } from './errors.js';
 export { compile } from './compile.js';
