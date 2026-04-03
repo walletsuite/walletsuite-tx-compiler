@@ -7,6 +7,7 @@
 export { TxCompilerError } from './errors.js';
 export type { TxCompilerErrorCode } from './errors.js';
 export { compile } from './compile.js';
+export { validate } from './validate.js';
 
 export type {
   Chain,
