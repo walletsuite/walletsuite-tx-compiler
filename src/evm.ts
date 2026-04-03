@@ -11,6 +11,14 @@ import type { CompilationResult, PreparedTransaction } from './types.js';
 
 export function compileEvm(prepared: PreparedTransaction): CompilationResult {
   const { fee } = prepared;
+
+  if (fee.mode !== 'EIP1559' && fee.mode !== 'LEGACY') {
+    throw new TxCompilerError(
+      'UNSUPPORTED_FEE_MODE',
+      `${fee.mode} fee mode invalid for ethereum chain`,
+    );
+  }
+
   const isEip1559 = fee.mode === 'EIP1559';
 
   const chainId = prepared.chainId;

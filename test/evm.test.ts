@@ -92,6 +92,28 @@ describe('compileEvm', () => {
     expect(() => compileEvm(input)).toThrow(TxCompilerError);
   });
 
+  it('throws for unsupported EVM fee modes', () => {
+    const input = {
+      ...EVM_NATIVE_EIP1559,
+      fee: {
+        mode: 'TRON' as const,
+        el: '30000000',
+        rp: null,
+      },
+    };
+
+    try {
+      compileEvm(input);
+    } catch (error) {
+      expect(error).toBeInstanceOf(TxCompilerError);
+      expect((error as TxCompilerError).code).toBe('UNSUPPORTED_FEE_MODE');
+      expect((error as TxCompilerError).message).toContain('TRON');
+      return;
+    }
+
+    throw new Error('Expected compileEvm to reject unsupported fee mode');
+  });
+
   it('matches ethers unsignedHash', () => {
     const result = compileEvm(EVM_NATIVE_EIP1559);
     const parsed = Transaction.from(result.unsignedTx);
