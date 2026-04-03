@@ -21,7 +21,7 @@ We aim to acknowledge reports within 48 hours and prioritize critical issues for
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.x     | :white_check_mark: |
+| 0.1.x   | :white_check_mark: |
 
 ## Scope
 
