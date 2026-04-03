@@ -1,6 +1,6 @@
 # WalletSuite TX Compiler
 
-[![npm version](https://img.shields.io/npm/v/%40walletsuite%2Ftx-compiler?logo=npm)](https://www.npmjs.com/package/@walletsuite/tx-compiler)
+[![npm version](https://img.shields.io/npm/v/%40walletsuite%2Ftx-compiler?logo=npm&color=2ea043)](https://www.npmjs.com/package/@walletsuite/tx-compiler)
 [![CI](https://github.com/walletsuite/walletsuite-tx-compiler/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/walletsuite/walletsuite-tx-compiler/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/walletsuite/walletsuite-tx-compiler)](https://github.com/walletsuite/walletsuite-tx-compiler/blob/main/LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D20.19.0-339933?logo=node.js&logoColor=white)](https://github.com/walletsuite/walletsuite-tx-compiler/blob/main/package.json)
