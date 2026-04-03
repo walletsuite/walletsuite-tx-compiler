@@ -58,7 +58,7 @@ export function compileTron(
 
   try {
     const timestamp = requireTimestamp(options?.now ?? Date.now(), 'now');
-    const expiration = requireExpiration(header.t);
+    const expiration = requireExpiration(header.t, timestamp);
     const refBlockBytes = buildRefBlockBytes(header.n);
     const refBlockHash = buildRefBlockHash(header.h);
 
@@ -211,7 +211,7 @@ function requireTimestamp(value: number, field: string): number {
   return value;
 }
 
-function requireExpiration(blockTimestamp: number): number {
+function requireExpiration(blockTimestamp: number, timestamp: number): number {
   const expiration = blockTimestamp + EXPIRATION_WINDOW_MS;
 
   if (!Number.isSafeInteger(expiration)) {
@@ -219,6 +219,14 @@ function requireExpiration(blockTimestamp: number): number {
       'INVALID_BLOCK_HEADER',
       'Block timestamp produces an invalid expiration value',
       { blockTimestamp },
+    );
+  }
+
+  if (expiration <= timestamp) {
+    throw new TxCompilerError(
+      'INVALID_BLOCK_HEADER',
+      'Block header is too old for transaction expiration',
+      { blockTimestamp, expiration, timestamp },
     );
   }
 

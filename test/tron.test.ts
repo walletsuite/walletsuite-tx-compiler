@@ -42,10 +42,24 @@ describe('compileTron', () => {
     expect(first.txHash).not.toBe(second.txHash);
   });
 
+  it('rejects stale headers that already expired at compile time', () => {
+    const expiredAt = TRON_BLOCK_HEADER.t + 10 * 60 * 60 * 1000;
+    expect(catchError(() => compileTron(TRON_NATIVE, { now: expiredAt })).code).toBe(
+      'INVALID_BLOCK_HEADER',
+    );
+  });
+
   it('uses Date.now() when no override is provided', () => {
-    const result = compileTron(TRON_NATIVE);
-    expect(result.unsignedTx).toMatch(/^0x[0-9a-f]+$/);
-    expect(result.metadata.expiration).toBe(TRON_BLOCK_HEADER.t + 10 * 60 * 60 * 1000);
+    const originalNow = Date.now;
+    Date.now = () => FIXED_NOW;
+
+    try {
+      const result = compileTron(TRON_NATIVE);
+      expect(result.unsignedTx).toMatch(/^0x[0-9a-f]+$/);
+      expect(result.metadata.expiration).toBe(TRON_BLOCK_HEADER.t + 10 * 60 * 60 * 1000);
+    } finally {
+      Date.now = originalNow;
+    }
   });
 
   it('compiles native transfers without a fee limit', () => {
@@ -71,10 +85,10 @@ describe('compileTron', () => {
     expect(catchError(() => compileTron({ ...TRON_NATIVE, fee: { mode: 'LEGACY' as const } })).code).toBe(
       'UNSUPPORTED_FEE_MODE',
     );
-    expect(catchError(() => compileTron({ ...TRON_NATIVE, tokenContract: TRON_TOKEN.tokenContract })).code).toBe(
+    expect(catchError(() => compileTron({ ...TRON_NATIVE, tokenContract: TRON_TOKEN.tokenContract }, { now: FIXED_NOW })).code).toBe(
       'INVALID_PAYLOAD',
     );
-    expect(catchError(() => compileTron({ ...TRON_NATIVE, data: '0xdeadbeef' })).code).toBe(
+    expect(catchError(() => compileTron({ ...TRON_NATIVE, data: '0xdeadbeef' }, { now: FIXED_NOW })).code).toBe(
       'INVALID_PAYLOAD',
     );
     expect(catchError(() => compileTron({ ...TRON_TOKEN, tokenContract: null }, { now: FIXED_NOW })).code).toBe(
