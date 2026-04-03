@@ -5,6 +5,7 @@
  * Ethereum native transfers with EIP-1559 or legacy fees.
  */
 
+import { getAddress } from 'ethers';
 import { TxCompilerError } from './errors.js';
 import type { Chain, FeeMode, FeeParams, PreparedTransaction, TxType } from './types.js';
 
@@ -119,6 +120,15 @@ function validateFee(raw: unknown): FeeParams {
 
 function validateEvmAddress(address: string, field: string): void {
   if (!EVM_ADDRESS_RE.test(address)) {
+    throw new TxCompilerError('INVALID_ADDRESS', `Invalid EVM address in ${field}: ${address}`, {
+      field,
+      address,
+    });
+  }
+
+  try {
+    getAddress(address);
+  } catch {
     throw new TxCompilerError('INVALID_ADDRESS', `Invalid EVM address in ${field}: ${address}`, {
       field,
       address,

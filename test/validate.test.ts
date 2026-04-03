@@ -134,6 +134,10 @@ describe('validate', () => {
     expect(
       expectError(() => validate({ ...EVM_NATIVE_EIP1559, to: 'not-an-address' })).code,
     ).toBe('INVALID_ADDRESS');
+    expect(
+      expectError(() => validate({ ...EVM_NATIVE_EIP1559, from: '0xd8dA6BF26964af9D7eEd9e03E53415D37aA96045' }))
+        .code,
+    ).toBe('INVALID_ADDRESS');
   });
 
   it('rejects calldata on native transfers', () => {
