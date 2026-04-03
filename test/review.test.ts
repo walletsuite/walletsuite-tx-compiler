@@ -16,6 +16,11 @@ describe('review', () => {
     expect(result.chainId).toBe(1);
   });
 
+  it('accepts empty calldata markers on native transfers', () => {
+    expect(review({ ...EVM_NATIVE_EIP1559, data: '' }).amount).toBe(EVM_NATIVE_EIP1559.valueWei);
+    expect(review({ ...EVM_NATIVE_EIP1559, data: '0x' }).amount).toBe(EVM_NATIVE_EIP1559.valueWei);
+  });
+
   it('reviews EVM token transfers and decodes calldata', () => {
     const result = review(EVM_TOKEN_EIP1559);
     expect(result.chain).toBe('ethereum');
@@ -95,6 +100,11 @@ describe('review', () => {
     expect(catchError(() => review(input)).code).toBe('INVALID_CALLDATA');
   });
 
+  it('rejects calldata on native transfers', () => {
+    const input = { ...EVM_NATIVE_EIP1559, data: '0xdeadbeef' };
+    expect(catchError(() => review(input)).code).toBe('INVALID_PAYLOAD');
+  });
+
   it('throws when token calldata address padding is non zero', () => {
     const input = {
       ...EVM_TOKEN_EIP1559,
@@ -118,6 +128,11 @@ describe('review', () => {
 
   it('rejects missing nonce values', () => {
     const input = { ...EVM_NATIVE_EIP1559, nonce: null };
+    expect(catchError(() => review(input)).code).toBe('INVALID_PAYLOAD');
+  });
+
+  it('rejects native value on token transfers', () => {
+    const input = { ...EVM_TOKEN_EIP1559, valueWei: '1' };
     expect(catchError(() => review(input)).code).toBe('INVALID_PAYLOAD');
   });
 

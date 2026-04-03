@@ -34,6 +34,7 @@ export function review(prepared: PreparedTransaction): TransactionReview {
   if (txType === 'TRANSFER_NATIVE') {
     validateEvmAddress(to, 'to');
     tokenContract = resolveTokenContract(prepared);
+    assertNativeCalldata(prepared.data);
     recipient = to;
     amount = requireUnsignedDecimal(valueWei, 'valueWei');
   } else if (txType === 'TRANSFER_TOKEN') {
@@ -42,6 +43,7 @@ export function review(prepared: PreparedTransaction): TransactionReview {
       throw new TxCompilerError('INVALID_CALLDATA', 'EVM token transfer missing calldata (data)');
     }
 
+    assertTokenNativeValue(valueWei);
     const decoded = decodeErc20TransferData(prepared.data);
     validateEvmAddress(decoded.recipient, 'recipient');
     recipient = decoded.recipient;
@@ -250,4 +252,24 @@ function resolveLegacyGasPrice(fee: FeeParams): string {
   }
 
   throw new TxCompilerError('MISSING_FEE_PARAMS', 'LEGACY requires gasPrice or maxFeePerGas');
+}
+
+function assertNativeCalldata(data: string | null): void {
+  if (data == null || data === '' || data === '0x') {
+    return;
+  }
+
+  throw new TxCompilerError('INVALID_PAYLOAD', 'EVM TRANSFER_NATIVE must not carry calldata', {
+    dataLength: data.length,
+  });
+}
+
+function assertTokenNativeValue(valueWei: string): void {
+  if (requireUnsignedDecimal(valueWei, 'valueWei') !== '0') {
+    throw new TxCompilerError(
+      'INVALID_PAYLOAD',
+      'EVM TRANSFER_TOKEN must not include native value',
+      { valueWei },
+    );
+  }
 }
