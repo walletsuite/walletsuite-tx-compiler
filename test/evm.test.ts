@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Transaction } from 'ethers';
 import { compileEvm } from '../src/evm.js';
 import { TxCompilerError } from '../src/errors.js';
@@ -126,5 +126,72 @@ describe('compileEvm', () => {
     const parsed = Transaction.from(result.unsignedTx);
     expect(parsed.gasLimit).toBe(30000000n);
     expect(parsed.maxFeePerGas).toBe(500000000000n);
+  });
+
+  it('defaults nonce and gasLimit when they are not provided', () => {
+    const input = {
+      ...EVM_NATIVE_LEGACY,
+      nonce: null,
+      data: '0x1234',
+      fee: {
+        ...EVM_NATIVE_LEGACY.fee,
+        gasLimit: null,
+      },
+    };
+    const result = compileEvm(input);
+    const parsed = Transaction.from(result.unsignedTx);
+    expect(parsed.nonce).toBe(0);
+    expect(parsed.gasLimit).toBe(21000n);
+    expect(parsed.data).toBe('0x1234');
+  });
+
+  it('defaults legacy gasPrice to zero when no fee price is present', () => {
+    const input = {
+      ...EVM_NATIVE_LEGACY,
+      fee: {
+        mode: 'LEGACY' as const,
+        gasLimit: '21000',
+        gasPrice: null,
+        maxFeePerGas: null,
+      },
+    };
+    const result = compileEvm(input);
+    const parsed = Transaction.from(result.unsignedTx);
+    expect(parsed.gasPrice).toBe(0n);
+  });
+
+  it('rethrows compiler errors raised during transaction assembly', () => {
+    const compilerError = new TxCompilerError('COMPILATION_FAILED', 'already typed');
+    const spy = vi.spyOn(Transaction, 'from').mockImplementation(() => {
+      throw compilerError;
+    });
+
+    try {
+      expect(() => compileEvm(EVM_NATIVE_EIP1559)).toThrow(compilerError);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
+  it('wraps unexpected errors raised during transaction assembly', () => {
+    const spy = vi.spyOn(Transaction, 'from').mockImplementation(() => {
+      throw new Error('boom');
+    });
+
+    try {
+      expect(() => compileEvm(EVM_NATIVE_EIP1559)).toThrow(TxCompilerError);
+
+      try {
+        compileEvm(EVM_NATIVE_EIP1559);
+      } catch (error) {
+        expect(error).toBeInstanceOf(TxCompilerError);
+        expect((error as TxCompilerError).code).toBe('COMPILATION_FAILED');
+        expect((error as TxCompilerError).details).toEqual({
+          cause: 'Error: boom',
+        });
+      }
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
