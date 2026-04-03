@@ -137,8 +137,13 @@ function requireString(obj: Record<string, unknown>, field: string): string {
 function optionalString(obj: Record<string, unknown>, field: string): string | null {
   const value = obj[field];
   if (value === null || value === undefined) return null;
-  if (typeof value === 'string') return value || null;
-  return null;
+  if (typeof value !== 'string') {
+    throw new TxCompilerError('INVALID_PAYLOAD', `Invalid optional string field: ${field}`, {
+      field,
+      value,
+    });
+  }
+  return value || null;
 }
 
 function optionalNumber(obj: Record<string, unknown>, field: string): number | null {
@@ -188,7 +193,7 @@ function optionalIntString(obj: Record<string, unknown>, field: string): string 
 
 function coerceToString(value: unknown): string | null {
   if (typeof value === 'string') return value;
-  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  if (typeof value === 'number' && Number.isSafeInteger(value)) return String(value);
   if (typeof value === 'bigint') return String(value);
   return null;
 }

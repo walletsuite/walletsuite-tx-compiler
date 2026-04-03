@@ -38,6 +38,12 @@ describe('validate', () => {
     expect(result.valueWei).toBe('42');
   });
 
+  it('rejects unsafe numeric integers during coercion', () => {
+    const unsafe = Number.MAX_SAFE_INTEGER + 1;
+    const error = expectError(() => validate({ ...EVM_NATIVE_EIP1559, valueWei: unsafe }));
+    expect(error.code).toBe('INVALID_AMOUNT');
+  });
+
   it('coerces numeric nonce to string', () => {
     const result = validate({ ...EVM_NATIVE_EIP1559, nonce: 7 });
     expect(result.nonce).toBe('7');
@@ -136,6 +142,15 @@ describe('validate', () => {
   it('accepts empty calldata markers for native transfers', () => {
     expect(validate({ ...EVM_NATIVE_EIP1559, data: '' }).data).toBeNull();
     expect(validate({ ...EVM_NATIVE_EIP1559, data: '0x' }).data).toBe('0x');
+  });
+
+  it('rejects invalid optional string field types', () => {
+    expect(expectError(() => validate({ ...EVM_NATIVE_EIP1559, data: 123 })).code).toBe(
+      'INVALID_PAYLOAD',
+    );
+    expect(
+      expectError(() => validate({ ...EVM_NATIVE_EIP1559, tokenContract: {} })).code,
+    ).toBe('INVALID_PAYLOAD');
   });
 
   it('rejects tokenContract on native transfers', () => {
