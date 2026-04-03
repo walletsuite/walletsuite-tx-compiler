@@ -143,13 +143,13 @@ function optionalString(obj: Record<string, unknown>, field: string): string | n
       value,
     });
   }
-  return value || null;
+  return value;
 }
 
 function optionalNumber(obj: Record<string, unknown>, field: string): number | null {
   const value = obj[field];
   if (value === null || value === undefined) return null;
-  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'number' && Number.isSafeInteger(value)) return value;
   return null;
 }
 

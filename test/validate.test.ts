@@ -102,6 +102,10 @@ describe('validate', () => {
     expect(expectError(() => validate({ ...EVM_NATIVE_EIP1559, chainId: 1.5 })).code).toBe(
       'INVALID_PAYLOAD',
     );
+    expect(
+      expectError(() => validate({ ...EVM_NATIVE_EIP1559, chainId: Number.MAX_SAFE_INTEGER + 1 }))
+        .code,
+    ).toBe('INVALID_PAYLOAD');
     expect(expectError(() => validate({ ...EVM_NATIVE_EIP1559, chainId: '1' })).code).toBe(
       'INVALID_PAYLOAD',
     );
@@ -140,7 +144,7 @@ describe('validate', () => {
   });
 
   it('accepts empty calldata markers for native transfers', () => {
-    expect(validate({ ...EVM_NATIVE_EIP1559, data: '' }).data).toBeNull();
+    expect(validate({ ...EVM_NATIVE_EIP1559, data: '' }).data).toBe('');
     expect(validate({ ...EVM_NATIVE_EIP1559, data: '0x' }).data).toBe('0x');
   });
 
@@ -160,6 +164,11 @@ describe('validate', () => {
         tokenContract: '0xdac17f958d2ee523a2206206994597c13d831ec7',
       }),
     );
+    expect(error.code).toBe('INVALID_PAYLOAD');
+  });
+
+  it('rejects empty tokenContract on native transfers', () => {
+    const error = expectError(() => validate({ ...EVM_NATIVE_EIP1559, tokenContract: '' }));
     expect(error.code).toBe('INVALID_PAYLOAD');
   });
 
