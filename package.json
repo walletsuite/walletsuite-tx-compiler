@@ -1,0 +1,78 @@
+{
+  "name": "@walletsuite/tx-compiler",
+  "version": "0.1.0",
+  "description": "TypeScript library for deterministic Blockchains transaction compilation from WalletSuite prepared payloads",
+  "license": "Apache-2.0",
+  "private": true,
+  "packageManager": "npm@10.9.2",
+  "homepage": "https://github.com/walletsuite/walletsuite-tx-compiler#readme",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npm run build:js && npm run build:types",
+    "build:js": "tsup",
+    "build:types": "tsc -p tsconfig.json --emitDeclarationOnly && cp dist/index.d.ts dist/index.d.cts",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.check.json",
+    "lint": "eslint src test",
+    "lint:fix": "eslint src test --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@noble/hashes": "2.0.1",
+    "ethers": "6.16.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@vitest/coverage-v8": "4.1.2",
+    "eslint": "10.1.0",
+    "prettier": "3.8.1",
+    "tsup": "8.5.1",
+    "typescript": "6.0.2",
+    "typescript-eslint": "8.58.0",
+    "vitest": "4.1.2"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/walletsuite/walletsuite-tx-compiler.git"
+  },
+  "bugs": {
+    "url": "https://github.com/walletsuite/walletsuite-tx-compiler/issues"
+  },
+  "keywords": [
+    "blockchain",
+    "transaction",
+    "compiler",
+    "ethereum",
+    "tron",
+    "evm",
+    "walletsuite"
+  ]
+}
