@@ -1,6 +1,13 @@
 import { getAddress } from 'ethers';
 import { TxCompilerError } from './errors.js';
-import type { FeeParams, FeeReview, PreparedTransaction, TransactionReview } from './types.js';
+import { tronAddressToBytes } from './tron-address.js';
+import type {
+  FeeParams,
+  FeeReview,
+  PreparedTransaction,
+  TransactionReview,
+  TronBlockHeader,
+} from './types.js';
 
 const ERC20_TRANSFER_SELECTOR = 'a9059cbb';
 const ERC20_TRANSFER_CALLDATA_HEX_LEN = 136;
@@ -9,18 +16,21 @@ const HEX_RE = /^[0-9a-fA-F]+$/;
 const NON_NEG_INT_RE = /^(0|[1-9]\d*)$/;
 
 /**
- * Build a human review summary for the currently supported EVM flows.
- *
- * Native transfers use top level fields directly. ERC-20 transfers derive the
- * actual recipient and amount from calldata so confirmation screens reflect the
- * on chain effect rather than the transaction envelope.
+ * Produce a human-reviewable summary of a prepared transaction.
  */
 export function review(prepared: PreparedTransaction): TransactionReview {
-  const { chain, txType, from, to, valueWei, nonce, chainId, fee } = prepared;
-
-  if (chain !== 'ethereum') {
-    throw new TxCompilerError('UNSUPPORTED_CHAIN', `${chain} review not supported yet`);
+  switch (prepared.chain) {
+    case 'ethereum':
+      return reviewEvm(prepared);
+    case 'tron':
+      return reviewTron(prepared);
+    default:
+      throw new TxCompilerError('UNSUPPORTED_CHAIN', `${prepared.chain} review not supported yet`);
   }
+}
+
+function reviewEvm(prepared: PreparedTransaction): TransactionReview {
+  const { chain, txType, from, to, valueWei, nonce, chainId, fee } = prepared;
 
   validateEvmAddress(from, 'from');
 
@@ -61,7 +71,72 @@ export function review(prepared: PreparedTransaction): TransactionReview {
     tokenContract,
     nonce: normalizedNonce,
     chainId: normalizedChainId,
-    fee: buildFeeReview(fee),
+    fee: buildEvmFeeReview(fee),
+  };
+}
+
+function reviewTron(prepared: PreparedTransaction): TransactionReview {
+  const { txType, from, to, valueWei, data, tokenContract, nonce, chainId, fee } = prepared;
+
+  validateTronAddress(from, 'from');
+  validateTronAddress(to, 'to');
+
+  if (chainId != null) {
+    throw new TxCompilerError('INVALID_PAYLOAD', 'Tron transactions must not include chainId', {
+      chainId,
+    });
+  }
+
+  if (nonce != null) {
+    throw new TxCompilerError('INVALID_PAYLOAD', 'Tron transactions must not include nonce', {
+      nonce,
+    });
+  }
+
+  assertTronPreparedData(data);
+  const feeReview = buildTronFeeReview(fee);
+
+  if (txType === 'TRANSFER_NATIVE') {
+    if (tokenContract != null) {
+      throw new TxCompilerError(
+        'INVALID_PAYLOAD',
+        'Tron TRANSFER_NATIVE must not include tokenContract',
+      );
+    }
+
+    return {
+      chain: 'tron',
+      txType,
+      from,
+      recipient: to,
+      amount: requireUnsignedDecimal(valueWei, 'valueWei'),
+      tokenContract: null,
+      nonce: null,
+      chainId: null,
+      fee: feeReview,
+    };
+  }
+
+  if (txType !== 'TRANSFER_TOKEN') {
+    throw new TxCompilerError('UNSUPPORTED_TX_TYPE', `${txType} review not supported yet`);
+  }
+
+  if (tokenContract == null) {
+    throw new TxCompilerError('INVALID_PAYLOAD', 'TRANSFER_TOKEN requires tokenContract');
+  }
+
+  validateTronAddress(tokenContract, 'tokenContract');
+
+  return {
+    chain: 'tron',
+    txType,
+    from,
+    recipient: to,
+    amount: requireUnsignedDecimal(valueWei, 'valueWei'),
+    tokenContract,
+    nonce: null,
+    chainId: null,
+    fee: feeReview,
   };
 }
 
@@ -151,7 +226,7 @@ function resolveTokenContract(prepared: PreparedTransaction): string | null {
 /**
  * Summarize fee fields into confirmation friendly review values.
  */
-function buildFeeReview(fee: FeeParams): FeeReview {
+function buildEvmFeeReview(fee: FeeParams): FeeReview {
   if (fee.mode === 'EIP1559') {
     const gasLimit = requireFeeField(fee.gasLimit, 'gasLimit');
     const maxFeePerGas = requireFeeField(fee.maxFeePerGas, 'maxFeePerGas');
@@ -189,11 +264,37 @@ function buildFeeReview(fee: FeeParams): FeeReview {
   );
 }
 
+function buildTronFeeReview(fee: FeeParams): FeeReview {
+  if (fee.mode !== 'TRON') {
+    throw new TxCompilerError('UNSUPPORTED_FEE_MODE', `${fee.mode} fee review invalid for tron chain`);
+  }
+
+  requireTronBlockHeader(fee.rp);
+  const tronFeeLimit = optionalUnsignedDecimal(fee.el, 'el');
+
+  return {
+    mode: fee.mode,
+    estimatedMaxCost: tronFeeLimit ?? null,
+    tronFeeLimit,
+  };
+}
+
 function validateEvmAddress(address: string, field: string): void {
   try {
     getAddress(address);
   } catch {
     throw new TxCompilerError('INVALID_ADDRESS', `Invalid EVM address in ${field}: ${address}`, {
+      field,
+      address,
+    });
+  }
+}
+
+function validateTronAddress(address: string, field: string): void {
+  try {
+    tronAddressToBytes(address);
+  } catch {
+    throw new TxCompilerError('INVALID_ADDRESS', `Invalid Tron address in ${field}: ${address}`, {
       field,
       address,
     });
@@ -229,7 +330,10 @@ function requireUnsignedDecimal(value: string, field: string): string {
   return value;
 }
 
-function optionalUnsignedDecimal(value: string | null | undefined, field: string): string | undefined {
+function optionalUnsignedDecimal(
+  value: string | null | undefined,
+  field: string,
+): string | undefined {
   if (value == null) return undefined;
   return requireUnsignedDecimal(value, field);
 }
@@ -272,4 +376,48 @@ function assertTokenNativeValue(valueWei: string): void {
       { valueWei },
     );
   }
+}
+
+function assertTronPreparedData(data: string | null): void {
+  if (data == null || data === '' || data === '0x') {
+    return;
+  }
+
+  throw new TxCompilerError('INVALID_PAYLOAD', 'Tron prepared payload must not include calldata', {
+    dataLength: data.length,
+  });
+}
+
+function requireTronBlockHeader(header: TronBlockHeader | null | undefined): TronBlockHeader {
+  if (header == null) {
+    throw new TxCompilerError(
+      'INVALID_BLOCK_HEADER',
+      'Tron transactions require block header (fee.rp)',
+    );
+  }
+
+  if (
+    typeof header.h !== 'string' ||
+    header.h.length < 32 ||
+    header.h.length % 2 !== 0 ||
+    !HEX_RE.test(header.h)
+  ) {
+    throw new TxCompilerError('INVALID_BLOCK_HEADER', 'Block ID (h) must be even-length hex with at least 32 characters', {
+      h: header.h,
+    });
+  }
+
+  if (!Number.isSafeInteger(header.n) || header.n < 1) {
+    throw new TxCompilerError('INVALID_BLOCK_HEADER', 'Block number (n) must be a positive integer', {
+      n: header.n,
+    });
+  }
+
+  if (!Number.isSafeInteger(header.t) || header.t < 1) {
+    throw new TxCompilerError('INVALID_BLOCK_HEADER', 'Block timestamp (t) must be a positive integer', {
+      t: header.t,
+    });
+  }
+
+  return header;
 }

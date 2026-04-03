@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { compile } from '../src/compile.js';
 import { TxCompilerError } from '../src/errors.js';
-import { EVM_NATIVE_EIP1559, EVM_NATIVE_LEGACY } from './fixtures.js';
+import { EVM_NATIVE_EIP1559, EVM_NATIVE_LEGACY, FIXED_NOW, TRON_NATIVE, TRON_TOKEN } from './fixtures.js';
 
 describe('compile', () => {
   it('dispatches native EIP-1559 transactions to the EVM compiler', () => {
@@ -16,8 +16,20 @@ describe('compile', () => {
     expect(result.metadata.evmTxType).toBe(0);
   });
 
+  it('dispatches Tron native transactions to the Tron compiler', () => {
+    const result = compile(TRON_NATIVE, { now: FIXED_NOW });
+    expect(result.chain).toBe('tron');
+    expect(result.metadata.tronContractType).toBe(1);
+  });
+
+  it('dispatches Tron token transactions to the Tron compiler', () => {
+    const result = compile(TRON_TOKEN, { now: FIXED_NOW });
+    expect(result.chain).toBe('tron');
+    expect(result.metadata.tronContractType).toBe(31);
+  });
+
   it('throws for unsupported chains', () => {
-    const input = { ...EVM_NATIVE_EIP1559, chain: 'tron' as 'ethereum' | 'tron' };
+    const input = { ...EVM_NATIVE_EIP1559, chain: 'solana' as 'ethereum' | 'tron' };
     expect(() => compile(input)).toThrow(TxCompilerError);
   });
 });

@@ -1,5 +1,5 @@
 /**
- * Shared EVM fixtures for compiler and review tests.
+ * Shared prepared transaction fixtures for compiler and review tests.
  */
 
 import type { PreparedTransaction } from '../src/types.js';
@@ -58,3 +58,49 @@ export const EVM_TOKEN_EIP1559: PreparedTransaction = {
     maxFeePerGas: '1214529816',
   },
 };
+
+export const TRON_BLOCK_HEADER = {
+  h: '0000000003b8e4b2a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4',
+  n: 62522546,
+  t: 1710000000000,
+  p: '0000000003b8e4b100000000000000000000000000000000000000000000000000000000',
+  r: 'aabbccdd',
+  w: '41abcdef1234567890abcdef1234567890abcdef12',
+  v: 30,
+} as const;
+
+export const TRON_NATIVE: PreparedTransaction = {
+  chain: 'tron',
+  chainId: null,
+  from: '41d8da6bf26964af9d7eed9e03e53415d37aa96045',
+  to: '410000000000000000000000000000000000000001',
+  valueWei: '5000000',
+  data: null,
+  txType: 'TRANSFER_NATIVE',
+  tokenContract: null,
+  nonce: null,
+  fee: {
+    mode: 'TRON',
+    el: null,
+    rp: TRON_BLOCK_HEADER,
+  },
+};
+
+export const TRON_TOKEN: PreparedTransaction = {
+  chain: 'tron',
+  chainId: null,
+  from: '41d8da6bf26964af9d7eed9e03e53415d37aa96045',
+  to: '410000000000000000000000000000000000000001',
+  valueWei: '1000000',
+  data: null,
+  txType: 'TRANSFER_TOKEN',
+  tokenContract: '41a614f803b6fd780986a42c78ec9c7f77e6ded13c',
+  nonce: null,
+  fee: {
+    mode: 'TRON',
+    el: '30000000',
+    rp: TRON_BLOCK_HEADER,
+  },
+};
+
+export const FIXED_NOW = 1710000060000;
