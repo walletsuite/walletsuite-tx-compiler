@@ -126,6 +126,39 @@ export interface FeeReview {
   readonly tronFeeLimit?: string;
 }
 
+// ---------------------------------------------------------------------------
+// Calldata decoding types
+// ---------------------------------------------------------------------------
+
+/** Supported ABI parameter types for calldata decoding */
+export type AbiParamType = 'address' | 'uint256' | 'bool' | 'bytes32';
+
+/** A single decoded ABI parameter */
+export interface DecodedParam {
+  readonly name: string;
+  readonly type: AbiParamType;
+  /** Decoded value: hex address for address, decimal string for uint256, etc. */
+  readonly value: string;
+}
+
+/** Result of generic calldata decoding */
+export interface DecodedCalldata {
+  /** 4-byte function selector (hex, no 0x prefix) */
+  readonly selector: string;
+  /** Resolved function name, or null if selector is not recognized */
+  readonly name: string | null;
+  /** Decoded parameters (empty if selector is not recognized) */
+  readonly params: readonly DecodedParam[];
+}
+
+/** Result of ERC-20 / TRC-20 transfer calldata decoding */
+export interface DecodedTokenTransfer {
+  /** Recipient in chain-native format (0x-prefixed for EVM, base58 for Tron) */
+  readonly recipient: string;
+  /** Transfer amount in smallest token units (decimal string) */
+  readonly amount: string;
+}
+
 /** Options for the compile step */
 export interface CompileOptions {
   /** Override wall-clock time for Tron transactions. Defaults to Date.now(). */
