@@ -2,6 +2,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { TxCompilerError } from './errors.js';
 
 const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+const HEX_RE = /^[0-9a-fA-F]+$/;
 const TRON_ADDRESS_HEX_RE = /^(0x)?41[0-9a-fA-F]{40}$/;
 const TRON_ADDRESS_BYTES = 21;
 const BASE58CHECK_BYTES = 25;
@@ -17,6 +18,30 @@ export function tronAddressToBytes(address: string): Uint8Array {
   }
 
   return base58CheckDecode(address);
+}
+
+export function hexToTronAddress(hex20: string): string {
+  const clean = hex20.startsWith('0x') ? hex20.slice(2) : hex20;
+
+  if (clean.length !== 40 || !HEX_RE.test(clean)) {
+    throw new TxCompilerError('INVALID_ADDRESS', 'Expected 20-byte hex address', {
+      address: hex20,
+    });
+  }
+
+  const payload = new Uint8Array(TRON_ADDRESS_BYTES);
+  payload[0] = 0x41;
+
+  for (let i = 0; i < 20; i++) {
+    payload[i + 1] = Number.parseInt(clean.slice(i * 2, i * 2 + 2), 16);
+  }
+
+  const checksum = sha256(sha256(payload)).slice(0, 4);
+  const full = new Uint8Array(BASE58CHECK_BYTES);
+  full.set(payload);
+  full.set(checksum, TRON_ADDRESS_BYTES);
+
+  return base58Encode(full);
 }
 
 export function isValidTronAddress(address: string): boolean {
@@ -90,6 +115,28 @@ function base58Decode(encoded: string): Uint8Array {
   const result = new Uint8Array(leadingZeros + bytes.length);
   result.set(bytes, leadingZeros);
   return result;
+}
+
+function base58Encode(bytes: Uint8Array): string {
+  let leadingZeros = 0;
+  for (const byte of bytes) {
+    if (byte !== 0) break;
+    leadingZeros++;
+  }
+
+  let num = 0n;
+  for (const byte of bytes) {
+    num = num * 256n + BigInt(byte);
+  }
+
+  let encoded = '';
+  while (num > 0n) {
+    const remainder = Number(num % 58n);
+    num = num / 58n;
+    encoded = BASE58_ALPHABET[remainder] + encoded;
+  }
+
+  return '1'.repeat(leadingZeros) + encoded;
 }
 
 function hexStringToBytes(hex: string): Uint8Array {

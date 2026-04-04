@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { sha256 } from '@noble/hashes/sha2.js';
-import { isValidTronAddress, tronAddressToBytes } from '../src/tron-address.js';
+import { hexToTronAddress, isValidTronAddress, tronAddressToBytes } from '../src/tron-address.js';
 import { TxCompilerError } from '../src/errors.js';
 
 const B58_CHARS = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
@@ -123,6 +123,35 @@ describe('tronAddressToBytes', () => {
     }
 
     throw new Error('Expected TxCompilerError');
+  });
+});
+
+describe('hexToTronAddress', () => {
+  it('converts 20-byte hex to a base58 T-address', () => {
+    const hex20 = KNOWN_HEX.slice(2); // strip the 41 prefix
+    const result = hexToTronAddress(hex20);
+    expect(result).toBe(KNOWN_T_ADDRESS);
+  });
+
+  it('accepts 0x prefix', () => {
+    const hex20 = '0x' + KNOWN_HEX.slice(2);
+    expect(hexToTronAddress(hex20)).toBe(KNOWN_T_ADDRESS);
+  });
+
+  it('round-trips with tronAddressToBytes', () => {
+    const hex20 = KNOWN_HEX.slice(2);
+    const tAddress = hexToTronAddress(hex20);
+    const bytes = tronAddressToBytes(tAddress);
+    expect(bytes).toEqual(KNOWN_BYTES);
+  });
+
+  it('rejects hex that is not 20 bytes', () => {
+    expect(() => hexToTronAddress('aabb')).toThrow(TxCompilerError);
+    expect(() => hexToTronAddress('00'.repeat(21))).toThrow(TxCompilerError);
+  });
+
+  it('rejects non-hex input', () => {
+    expect(() => hexToTronAddress('zz'.repeat(20))).toThrow(TxCompilerError);
   });
 });
 
