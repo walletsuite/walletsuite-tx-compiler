@@ -39,7 +39,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@noble/hashes": "2.0.1",
+    "@noble/hashes": "2.2.0",
     "ethers": "6.16.0"
   },
   "devDependencies": {
