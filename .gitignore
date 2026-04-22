@@ -1,0 +1,7 @@
+/target
+/Cargo.lock.backup
+**/*.rs.bk
+.DS_Store
+.idea/
+.vscode/
+*.profraw

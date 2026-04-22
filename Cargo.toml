@@ -1,0 +1,57 @@
+[package]
+name = "walletsuite-tx-compiler"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.91"
+description = "Deterministic Ethereum and Tron transaction compilation for WalletSuite prepared payloads"
+license = "Apache-2.0"
+repository = "https://github.com/walletsuite/walletsuite-tx-compiler"
+homepage = "https://walletsuite.io"
+documentation = "https://docs.rs/walletsuite-tx-compiler"
+readme = "README.md"
+keywords = ["blockchain", "ethereum", "tron", "transaction", "walletsuite"]
+categories = ["cryptography::cryptocurrencies", "encoding"]
+authors = ["WalletSuite <engineering@walletsuite.io>"]
+
+[lib]
+name = "walletsuite_tx_compiler"
+path = "src/lib.rs"
+
+[dependencies]
+# EVM stack (alloy ecosystem)
+alloy-primitives = { version = "1.3", default-features = false, features = ["std", "serde"] }
+alloy-consensus = { version = "1.3", default-features = false, features = ["std", "k256"] }
+
+# Hashing
+sha2 = { version = "0.10", default-features = false, features = ["std"] }
+
+# Tron base58check
+bs58 = { version = "0.5", default-features = false, features = ["check", "std"] }
+
+# Serialization / utilities
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["preserve_order"] }
+hex = { version = "0.4", default-features = false, features = ["std"] }
+
+[dev-dependencies]
+proptest = "1.5"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+nursery = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+must_use_candidate = "allow"
+multiple_crate_versions = "allow"

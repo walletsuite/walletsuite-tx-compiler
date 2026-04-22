@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-04-17T15:15:46.118Z",
+  "tron_fixed_now": 1710000060000,
+  "cases": [
+    {
+      "name": "evm_native_eip1559",
+      "input": {
+        "chain": "ethereum",
+        "chainId": 1,
+        "from": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+        "to": "0x0000000000000000000000000000000000000001",
+        "valueWei": "1000000000000000000",
+        "data": null,
+        "txType": "TRANSFER_NATIVE",
+        "tokenContract": null,
+        "nonce": "1649",
+        "fee": {
+          "mode": "EIP1559",
+          "gasLimit": "24338",
+          "baseFeePerGas": "107264908",
+          "maxPriorityFeePerGas": "1000000000",
+          "maxFeePerGas": "1214529816"
+        }
+      },
+      "options": null,
+      "expected": {
+        "unsignedTx": "0x02f101820671843b9aca008448644118825f12940000000000000000000000000000000000000001880de0b6b3a764000080c0",
+        "txHash": "0x2936ef2583b732e5c049d4094df3a25b4da9985d1cf6314bb663422561c98b35",
+        "metadata": {
+          "txType": "TRANSFER_NATIVE",
+          "feeMode": "EIP1559",
+          "evmTxType": 2
+        },
+        "review": {
+          "chain": "ethereum",
+          "txType": "TRANSFER_NATIVE",
+          "from": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+          "recipient": "0x0000000000000000000000000000000000000001",
+          "amount": "1000000000000000000",
+          "tokenContract": null,
+          "nonce": "1649",
+          "chainId": 1,
+          "fee": {
+            "mode": "EIP1559",
+            "estimatedMaxCost": "29559226661808",
+            "gasLimit": "24338",
+            "maxFeePerGas": "1214529816",
+            "maxPriorityFeePerGas": "1000000000",
+            "baseFeePerGas": "107264908"
+          }
+        }
+      }
+    },
+    {
+      "name": "evm_token_eip1559",
+      "input": {
+        "chain": "ethereum",
+        "chainId": 1,
+        "from": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+        "to": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        "valueWei": "0",
+        "data": "0xa9059cbb000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000f4240",
+        "txType": "TRANSFER_TOKEN",
+        "tokenContract": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        "nonce": "1649",
+        "fee": {
+          "mode": "EIP1559",
+          "gasLimit": "46251",
+          "baseFeePerGas": "107264908",
+          "maxPriorityFeePerGas": "1000000000",
+          "maxFeePerGas": "1214529816"
+        }
+      },
+      "options": null,
+      "expected": {
+        "unsignedTx": "0x02f86e01820671843b9aca00844864411882b4ab94dac17f958d2ee523a2206206994597c13d831ec780b844a9059cbb000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000f4240c0",
+        "txHash": "0xe0624fce8a337daffecef8ab0bff31390befe64702a81f858595eece73250caa",
+        "metadata": {
+          "txType": "TRANSFER_TOKEN",
+          "feeMode": "EIP1559",
+          "evmTxType": 2
+        },
+        "review": {
+          "chain": "ethereum",
+          "txType": "TRANSFER_TOKEN",
+          "from": "0xd8da6bf26964af9d7eed9e03e53415d37aa96045",
+          "recipient": "0x0000000000000000000000000000000000000001",
+          "amount": "1000000",
+          "tokenContract": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+          "nonce": "1649",
+          "chainId": 1,
+          "fee": {
+            "mode": "EIP1559",
+            "estimatedMaxCost": "56173218519816",
+            "gasLimit": "46251",
+            "maxFeePerGas": "1214529816",
+            "maxPriorityFeePerGas": "1000000000",
+            "baseFeePerGas": "107264908"
+          }
+        }
+      }
+    },
+    {
+      "name": "evm_native_legacy",
+      "input": {
+        "chain": "ethereum",
+        "chainId": 56,
+        "from": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+        "to": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+        "valueWei": "500000000000000000",
+        "data": null,
+        "txType": "TRANSFER_NATIVE",
+        "tokenContract": null,
+        "nonce": "42",
+        "fee": {
+          "mode": "LEGACY",
+          "gasLimit": "21000",
+          "gasPrice": "5000000000"
+        }
+      },
+      "options": null,
+      "expected": {
+        "unsignedTx": "0xec2a85012a05f2008252089470997970c51812dc3a010c7d01b50e0d17dc79c88806f05b59d3b2000080388080",
+        "txHash": "0x9f33b4ca2b7b0de2571993ee2a4aa1896f6987ba9929b81ea97cd94a4cb9ba78",
+        "metadata": {
+          "txType": "TRANSFER_NATIVE",
+          "feeMode": "LEGACY",
+          "evmTxType": 0
+        },
+        "review": {
+          "chain": "ethereum",
+          "txType": "TRANSFER_NATIVE",
+          "from": "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266",
+          "recipient": "0x70997970c51812dc3a010c7d01b50e0d17dc79c8",
+          "amount": "500000000000000000",
+          "tokenContract": null,
+          "nonce": "42",
+          "chainId": 56,
+          "fee": {
+            "mode": "LEGACY",
+            "estimatedMaxCost": "105000000000000",
+            "gasLimit": "21000",
+            "gasPrice": "5000000000"
+          }
+        }
+      }
+    },
+    {
+      "name": "tron_native",
+      "input": {
+        "chain": "tron",
+        "chainId": null,
+        "from": "41d8da6bf26964af9d7eed9e03e53415d37aa96045",
+        "to": "410000000000000000000000000000000000000001",
+        "valueWei": "5000000",
+        "data": null,
+        "txType": "TRANSFER_NATIVE",
+        "tokenContract": null,
+        "nonce": null,
+        "fee": {
+          "mode": "TRON",
+          "el": null,
+          "rp": {
+            "h": "0000000003b8e4b2a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4",
+            "n": 62522546,
+            "t": 1710000000000,
+            "p": "0000000003b8e4b100000000000000000000000000000000000000000000000000000000",
+            "r": "aabbccdd",
+            "w": "41abcdef1234567890abcdef1234567890abcdef12",
+            "v": 30
+          }
+        }
+      },
+      "options": {
+        "now": 1710000060000
+      },
+      "expected": {
+        "unsignedTx": "0x0a0204b22208a1b2c3d4e5f6a7b840e08edeb0e2315a68080112640a2d747970652e676f6f676c65617069732e636f6d2f70726f746f636f6c2e5472616e73666572436f6e747261637412330a1541d8da6bf26964af9d7eed9e03e53415d37aa96045121541000000000000000000000000000000000000000118c096b10270e0ecc89fe231",
+        "txHash": "0x86ef73c259d92e069e47df76e1f65ccc8ad63cfe6d922a3f39202f9a3c187659",
+        "metadata": {
+          "txType": "TRANSFER_NATIVE",
+          "feeMode": "TRON",
+          "tronContractType": 1,
+          "expiration": 1710036060000
+        },
+        "review": {
+          "chain": "tron",
+          "txType": "TRANSFER_NATIVE",
+          "from": "41d8da6bf26964af9d7eed9e03e53415d37aa96045",
+          "recipient": "410000000000000000000000000000000000000001",
+          "amount": "5000000",
+          "tokenContract": null,
+          "nonce": null,
+          "chainId": null,
+          "fee": {
+            "mode": "TRON",
+            "estimatedMaxCost": null
+          }
+        }
+      }
+    },
+    {
+      "name": "tron_token",
+      "input": {
+        "chain": "tron",
+        "chainId": null,
+        "from": "41d8da6bf26964af9d7eed9e03e53415d37aa96045",
+        "to": "410000000000000000000000000000000000000001",
+        "valueWei": "1000000",
+        "data": null,
+        "txType": "TRANSFER_TOKEN",
+        "tokenContract": "41a614f803b6fd780986a42c78ec9c7f77e6ded13c",
+        "nonce": null,
+        "fee": {
+          "mode": "TRON",
+          "el": "30000000",
+          "rp": {
+            "h": "0000000003b8e4b2a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4",
+            "n": 62522546,
+            "t": 1710000000000,
+            "p": "0000000003b8e4b100000000000000000000000000000000000000000000000000000000",
+            "r": "aabbccdd",
+            "w": "41abcdef1234567890abcdef1234567890abcdef12",
+            "v": 30
+          }
+        }
+      },
+      "options": {
+        "now": 1710000060000
+      },
+      "expected": {
+        "unsignedTx": "0x0a0204b22208a1b2c3d4e5f6a7b840e08edeb0e2315aae01081f12a9010a31747970652e676f6f676c65617069732e636f6d2f70726f746f636f6c2e54726967676572536d617274436f6e747261637412740a1541d8da6bf26964af9d7eed9e03e53415d37aa96045121541a614f803b6fd780986a42c78ec9c7f77e6ded13c2244a9059cbb000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000f424070e0ecc89fe23190018087a70e",
+        "txHash": "0x55afb7bf80903a831c31f5c77b0184e2b04e60155efc437abd1c8f0f62b45a97",
+        "metadata": {
+          "txType": "TRANSFER_TOKEN",
+          "feeMode": "TRON",
+          "tronContractType": 31,
+          "expiration": 1710036060000
+        },
+        "review": {
+          "chain": "tron",
+          "txType": "TRANSFER_TOKEN",
+          "from": "41d8da6bf26964af9d7eed9e03e53415d37aa96045",
+          "recipient": "410000000000000000000000000000000000000001",
+          "amount": "1000000",
+          "tokenContract": "41a614f803b6fd780986a42c78ec9c7f77e6ded13c",
+          "nonce": null,
+          "chainId": null,
+          "fee": {
+            "mode": "TRON",
+            "estimatedMaxCost": "30000000",
+            "tronFeeLimit": "30000000"
+          }
+        }
+      }
+    }
+  ]
+}
