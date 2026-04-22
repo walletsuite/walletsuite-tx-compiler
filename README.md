@@ -6,7 +6,7 @@ Crate name: **`walletsuite-tx-compiler`**
 
 [![CI](https://github.com/walletsuite/walletsuite-tx-compiler/actions/workflows/ci.yml/badge.svg)](https://github.com/walletsuite/walletsuite-tx-compiler/actions/workflows/ci.yml)
 [![Crates.io](https://img.shields.io/crates/v/walletsuite-tx-compiler.svg)](https://crates.io/crates/walletsuite-tx-compiler)
-[![Docs.rs](https://docs.rs/walletsuite-tx-compiler/badge.svg)](https://docs.rs/walletsuite-tx-compiler)
+[![Docs.rs](https://img.shields.io/docsrs/walletsuite-tx-compiler)](https://docs.rs/walletsuite-tx-compiler)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![MSRV](https://img.shields.io/badge/MSRV-1.91-orange.svg)](Cargo.toml)
 
