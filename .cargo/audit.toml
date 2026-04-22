@@ -1,0 +1,10 @@
+[advisories]
+# Transitive `unmaintained` advisories reachable through the alloy
+# ecosystem (alloy-consensus → alloy-trie → nybbles → ruint → ark-ff).
+# Neither is a vulnerability; both are upstream crates that the alloy
+# stack is migrating away from. Revisit when alloy-consensus >1.8.x
+# drops them.
+ignore = [
+    "RUSTSEC-2024-0388", # derivative — unmaintained
+    "RUSTSEC-2024-0436", # paste — unmaintained
+]
