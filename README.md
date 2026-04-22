@@ -64,55 +64,51 @@ walletsuite-tx-compiler = "0.1"
 ```rust
 use walletsuite_tx_compiler::{compile, review, validate, CompileOptions};
 
-# fn example() -> Result<(), Box<dyn std::error::Error>> {
-let raw: serde_json::Value = serde_json::from_str(r#"{
-    "chain": "ethereum",
-    "chainId": 1,
-    "txType": "TRANSFER_NATIVE",
-    "from": "0x1111111111111111111111111111111111111111",
-    "to":   "0x2222222222222222222222222222222222222222",
-    "valueWei": "1000000000000000000",
-    "nonce": "0",
-    "fee": {
-        "mode": "EIP1559",
-        "gasLimit": "21000",
-        "maxFeePerGas": "30000000000",
-        "maxPriorityFeePerGas": "1500000000"
-    }
-}"#)?;
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let raw: serde_json::Value = serde_json::from_str(r#"{
+        "chain": "ethereum",
+        "chainId": 1,
+        "txType": "TRANSFER_NATIVE",
+        "from": "0x1111111111111111111111111111111111111111",
+        "to":   "0x2222222222222222222222222222222222222222",
+        "valueWei": "1000000000000000000",
+        "nonce": "0",
+        "fee": {
+            "mode": "EIP1559",
+            "gasLimit": "21000",
+            "maxFeePerGas": "30000000000",
+            "maxPriorityFeePerGas": "1500000000"
+        }
+    }"#)?;
 
-let prepared     = validate(&raw)?;
-let human_review = review(&prepared)?;
-let result       = compile(&prepared, CompileOptions::default())?;
+    let prepared = validate(&raw)?;
+    let human_review = review(&prepared)?;
+    let result = compile(&prepared, CompileOptions::default())?;
 
-assert!(result.unsigned_tx.starts_with("0x02")); // EIP-1559 envelope
-// Sign `result.tx_hash`, then reconstruct the signed wire tx with
-// `alloy_consensus::TxEnvelope` (EVM) or by wrapping `raw_data` +
-// signature in the outer Tron `Transaction` protobuf.
-# let _ = (human_review, result);
-# Ok(())
-# }
+    // EIP-1559 signing pre-image starts with the 0x02 envelope byte.
+    assert!(result.unsigned_tx.starts_with("0x02"));
+
+    println!("{human_review:#?}");
+    println!("digest to sign: {}", result.tx_hash);
+
+    // Sign `result.tx_hash` with your HSM / hardware wallet / signer, then
+    // reconstruct the signed wire transaction via
+    // `alloy_consensus::TxEnvelope` (EVM) or by wrapping the Tron
+    // `raw_data` + signature in the outer `Transaction` protobuf.
+    Ok(())
+}
 ```
 
-For Tron transactions, supply a deterministic `now` if you need
-reproducible output:
+### Reproducible Tron output
+
+Tron `timestamp` and `expiration` default to `SystemTime::now()`, so
+compiled bytes vary per call. For byte-exact reproducibility, pin the
+wall clock (milliseconds since epoch):
 
 ```rust
-use walletsuite_tx_compiler::{compile, validate, CompileOptions};
-
-# fn example() -> Result<(), Box<dyn std::error::Error>> {
-# let raw: serde_json::Value = serde_json::from_str("{}")?;
-# let prepared = validate(&raw)?;
 let options = CompileOptions::new().with_now(1_710_000_000_000);
 let result = compile(&prepared, options)?;
-# let _ = result;
-# Ok(())
-# }
 ```
-
-When `options` is `None` (or `now` is `None`), Tron `timestamp` and
-`expiration` fall back to the system clock and the output varies per
-call.
 
 ## Output contract
 
