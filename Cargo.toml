@@ -42,6 +42,10 @@ lto = "thin"
 codegen-units = 1
 strip = "symbols"
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [lints.rust]
 unsafe_code = "forbid"
 missing_docs = "warn"
